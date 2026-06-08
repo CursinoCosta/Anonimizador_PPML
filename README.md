@@ -37,14 +37,15 @@ Anonimizador_PPML/
 
 ### 1. Módulo de Data Profiling e Classificação de Atributos
 
-* [ ] Criar interface de upload de arquivos CSV no Streamlit.
+* [X] Criar interface de upload de arquivos CSV no Streamlit.
 
-* [ ] Implementar visualização prévia das primeiras linhas do dataset (Data Profiling básico).
-* [ ] Desenvolver componente (ex: `st.data_editor` ou `st.selectbox` por coluna) para classificar os atributos em:
-  * [ ] Identificadores Diretos (DI)
-  * [ ] Quase-Identificadores (QI)
-  * [ ] Atributos Sensíveis (SA)
-  * [ ] Atributos Não Sensíveis (NSA)
+* [X] Implementar visualização prévia das primeiras linhas do dataset (Data Profiling básico).
+* [X] Desenvolver componente (ex: `st.data_editor` ou `st.selectbox` por coluna) para classificar os atributos em:
+
+- Identificadores Diretos (DI)
+- Quase-Identificadores (QI)
+- Atributos Sensíveis (SA)
+- Atributos Não Sensíveis (NSA)
 
 ### 2. Motor de Transformação: Generalização e Supressão
 
