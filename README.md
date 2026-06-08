@@ -49,12 +49,12 @@ Anonimizador_PPML/
 
 ### 2. Motor de Transformação: Generalização e Supressão
 
-* [ ] Criar função de supressão imediata (drop ou mascaramento) para colunas classificadas como Identificadores Diretos (DI).
+* [X] Criar função de supressão imediata (drop ou mascaramento) para colunas classificadas como Identificadores Diretos (DI).
 
-* [ ] Implementar interface para o usuário definir regras de generalização para os Quase-Identificadores (QI):
-  * [ ] Suporte a generalização numérica (ex: agrupamento em faixas/bins, como idade 20-29).
-  * [ ] Suporte a supressão parcial de strings (ex: ocultar os 3 últimos dígitos de um CEP ou CPF mascarado).
-* [ ] Aplicar as transformações no DataFrame em memória.
+* [X] Implementar interface para o usuário definir regras de generalização para os Quase-Identificadores (QI):
+  * [X] Suporte a generalização numérica (ex: agrupamento em faixas/bins, como idade 20-29).
+  * [X] Suporte a supressão parcial de strings (ex: ocultar os 3 últimos dígitos de um CEP ou CPF mascarado).
+* [X] Aplicar as transformações no DataFrame em memória.
 
 ### 3. Pipeline de Modelos Sintáticos de Privacidade
 
