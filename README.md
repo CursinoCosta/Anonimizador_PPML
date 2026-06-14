@@ -58,21 +58,21 @@ Anonimizador_PPML/
 
 ### 3. Pipeline de Modelos Sintáticos de Privacidade
 
-* [ ] **k-anonimato:**
-  * [ ] Adicionar slider na interface para definição do parâmetro `k`.
-  * [ ] Implementar algoritmo para agrupar as classes de equivalência com base nos QIs.
-  * [ ] Validar e suprimir/generalizar mais os registros que não atingem o valor de `k`.
+* [X] **k-anonimato:**
+  * [X] Adicionar slider na interface para definição do parâmetro `k`.
+  * [X] Implementar algoritmo para agrupar as classes de equivalência com base nos QIs.
+  * [X] Validar e suprimir/generalizar mais os registros que não atingem o valor de `k`.
 
-* [ ] **l-diversidade:**
-  * [ ] Adicionar input numérico para o parâmetro `l`.
-  * [ ] Criar função que verifica se cada classe de equivalência possui pelo menos `l` valores distintos no Atributo Sensível (SA).
-* [ ] **t-closeness:**
-  * [ ] Adicionar input (float de 0.0 a 1.0) para o parâmetro `t`.
-  * [ ] Implementar cálculo de distância (ex: *Earth Mover's Distance*) entre a distribuição do SA na classe de equivalência e a distribuição global.
+* [X] **l-diversidade:**
+  * [X] Adicionar input numérico para o parâmetro `l`.
+  * [X] Criar função que verifica se cada classe de equivalência possui pelo menos `l` valores distintos no Atributo Sensível (SA).
+* [X] **t-closeness:**
+  * [X] Adicionar input (float de 0.0 a 1.0) para o parâmetro `t`.
+  * [X] Implementar cálculo de distância (ex: *Earth Mover's Distance*) entre a distribuição do SA na classe de equivalência e a distribuição global. Na implementação atual, usa-se distância de variação total.
 
 ### 4. Dashboard de Trade-off e Risco Adversarial
 
-* [ ] Desenvolver o cálculo da "Perda de Utilidade" (Loss Metric) comparando a base original e a anonimizada.
+* [X] Desenvolver o cálculo da "Perda de Utilidade" (Loss Metric) comparando a base original e a anonimizada.
 
 * [ ] Criar gráfico interativo mostrando o nível de distorção dos dados vs. o ganho de privacidade.
 * [ ] Construir a tabela de "Risco Adversarial", destacando em vermelho as classes de equivalência vulneráveis a ataques de ligação/homogeneidade antes das métricas e o status seguro após a transformação.
