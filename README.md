@@ -74,8 +74,8 @@ Anonimizador_PPML/
 
 * [X] Desenvolver o cálculo da "Perda de Utilidade" (Loss Metric) comparando a base original e a anonimizada.
 
-* [ ] Criar gráfico interativo mostrando o nível de distorção dos dados vs. o ganho de privacidade.
-* [ ] Construir a tabela de "Risco Adversarial", destacando em vermelho as classes de equivalência vulneráveis a ataques de ligação/homogeneidade antes das métricas e o status seguro após a transformação.
+* [X] Criar gráfico interativo mostrando o nível de distorção dos dados vs. o ganho de privacidade.
+* [X] Construir a tabela de "Risco Adversarial", destacando em vermelho as classes de equivalência vulneráveis a ataques de ligação/homogeneidade antes das métricas e o status seguro após a transformação.
 
 ### 5. Exportador e Relatório de Conformidade (LGPD Ready)
 

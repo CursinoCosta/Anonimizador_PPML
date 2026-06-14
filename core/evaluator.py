@@ -45,6 +45,11 @@ class Evaluator:
         status = self._definir_status(metrics, k_alvo, l_alvo, t_limite)
         summary = self._gerar_resumo(metrics, status, qi_columns, sa_columns)
 
+        adversarial_table = self.calcular_risco_adversarial(
+            k_alvo,
+            l_alvo,
+        )
+
         details = {
             "qi_columns": qi_columns,
             "sa_columns": sa_columns,
@@ -54,6 +59,7 @@ class Evaluator:
             "utility": utility_result,
             "equivalence_classes": k_result.get("equivalence_classes", []),
             "risk_level": self._classificar_risco(metrics["reidentification_risk"]),
+            "adversarial_table": adversarial_table,
         }
 
         return {
@@ -275,6 +281,51 @@ class Evaluator:
             "preserved_cells": int(celulas_preservadas),
             "total_original_cells": int(total_celulas_original),
         }
+
+    def calcular_risco_adversarial(self, k_alvo=2, l_alvo=2):
+        qi_columns = self._obter_qis()
+        sa_columns = self._obter_sas()
+
+        if not qi_columns:
+            return []
+
+        grupos = self._gerar_classes_equivalencia()
+
+        tabela = []
+
+        for chave, grupo in grupos:
+
+            tamanho = len(grupo)
+
+            diversidade = None
+
+            if sa_columns:
+                diversidade = min(
+                    grupo[coluna].nunique(dropna=False)
+                    for coluna in sa_columns
+                )
+
+            vulneravel = False
+
+            if tamanho < k_alvo:
+                vulneravel = True
+
+            if diversidade is not None and diversidade < l_alvo:
+                vulneravel = True
+
+            tabela.append(
+                {
+                    "Classe": str(self._serializar_chave_grupo(chave)),
+                    "Tamanho": int(tamanho),
+                    "Diversidade": diversidade,
+                    "Status": (
+                        "VULNERAVEL"
+                        if vulneravel
+                        else "SEGURO"
+                    ),
+                }
+            )
+        return tabela
 
     def calcular_risco_reidentificacao(self, metrics, k_alvo=2, l_alvo=2, t_limite=0.2):
         k = metrics.get("k_anonymity")

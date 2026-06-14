@@ -1,5 +1,6 @@
 import pandas as pd
 import streamlit as st
+from ui.charts import criar_grafico_tradeoff
 
 
 def secao_seleciona_tipos(df):
@@ -161,6 +162,54 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
         "SAs avaliados: "
         f"{', '.join(detalhes['sa_columns']) or 'nenhum'}"
     )
+
+    st.divider()
+
+    st.subheader("Dashboard de Trade-off")
+
+    fig = criar_grafico_tradeoff(metrics)
+
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    st.subheader("Risco Adversarial")
+
+    tabela = detalhes.get(
+        "adversarial_table",
+        [],
+    )
+
+    if tabela:
+
+        df_risco = pd.DataFrame(tabela)
+
+        def destacar_linha(linha):
+
+            if linha["Status"] == "VULNERAVEL":
+                return [
+                    "background-color: #ffcccc"
+                ] * len(linha)
+
+            return [
+                "background-color: #ccffcc"
+            ] * len(linha)
+
+        st.dataframe(
+            df_risco.style.apply(
+                destacar_linha,
+                axis=1,
+            ),
+            use_container_width=True,
+        )
+
+    else:
+        st.info(
+            "Nao ha classes de equivalencia para avaliar."
+        )
 
 
 def _renderizar_supressao(profiler, anonymizer):
