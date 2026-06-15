@@ -593,22 +593,36 @@ def secao_exportacao(anonymizer, profiler, evaluation_result=None, thresholds=No
         
         st.dataframe(df_conformidade, use_container_width=True, hide_index=True)
 
-        # --- Seção 5: Exportar relatório ---
-        st.header("5. Exportar Relatório de Anonimização")
+    st.header("5. Exportar Relatório de Anonimização")
 
+    relatorio_disponivel = dataset_modificado and evaluation_result is not None and thresholds is not None
+
+    if relatorio_disponivel:
         pdf_bytes = gerar_relatorio_pdf(
             linhas_resumo=linhas_resumo,
             historico=getattr(anonymizer, "historico", []),
             df_conformidade=df_conformidade,
         )
         nome_relatorio = nome_arquivo_original.replace(".csv", "") + "_relatorio.pdf"
+    else:
+        pdf_bytes = b""
+        nome_relatorio = "relatorio.pdf"
 
-        st.download_button(
-            label="⬇ Baixar Relatório PDF",
-            data=pdf_bytes,
-            file_name=nome_relatorio,
-            mime="application/pdf",
-        )
+    st.download_button(
+        label="⬇ Baixar Relatório PDF",
+        data=pdf_bytes,
+        file_name=nome_relatorio,
+        mime="application/pdf",
+        disabled=not relatorio_disponivel,
+        help=(
+            "Exporta o relatório de conformidade da anonimização em PDF."
+            if relatorio_disponivel
+            else "Aplique ao menos uma transformação e avalie os resultados antes de exportar o relatório."
+        ),
+    )
+
+    if not relatorio_disponivel:
+        st.caption("Nenhum relatório disponível ainda.")
 
     st.header("6. Exportar Dataset Anonimizado")
 
@@ -637,3 +651,4 @@ def secao_exportacao(anonymizer, profiler, evaluation_result=None, thresholds=No
             f"O dataset transformado possui {len(anonymizer.df_anonimizado)} linhas "
             f"e {len(anonymizer.df_anonimizado.columns)} colunas."
         )
+
