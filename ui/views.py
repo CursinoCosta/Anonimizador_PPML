@@ -204,16 +204,21 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None, baseline_
     if tabela:
 
         df_risco = pd.DataFrame(tabela)
+        
+        if "Status" in df_risco.columns:
+            df_risco["Status"] = df_risco["Status"].replace({
+                "VULNERAVEL": "VULNERÁVEL"
+            })
 
         def destacar_linha(linha):
 
-            if linha["Status"] == "VULNERAVEL":
+            if linha["Status"] == "VULNERÁVEL":
                 return [
-                    "background-color: #ffcccc"
+                    "background-color: rgba(239, 68, 68, 0.2); color: #ffffff"
                 ] * len(linha)
 
             return [
-                "background-color: #ccffcc"
+                "background-color: rgba(34, 197, 94, 0.2); color: #ffffff"
             ] * len(linha)
 
         st.dataframe(
