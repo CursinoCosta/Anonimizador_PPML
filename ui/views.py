@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 from ui.charts import criar_grafico_tradeoff
+from utils.arquivos import exportar_csv
 
 
 def secao_seleciona_tipos(profiler):
@@ -506,3 +507,35 @@ def _formatar_percentual(valor):
 def _marcar_avaliacao_desatualizada():
     st.session_state["evaluation_result"] = None
     st.session_state["last_auto_k_adjustment"] = None
+
+
+def secao_exportacao(anonymizer, profiler, nome_arquivo_original="dataset"):
+    st.header("5. Exportar Dataset Anonimizado")
+
+    dataset_modificado = not anonymizer.df_anonimizado.equals(profiler.df)
+
+    nome_base = nome_arquivo_original.replace(".csv", "")
+    nome_saida = f"{nome_base}_anonimizado.csv"
+
+    csv_bytes = exportar_csv(anonymizer.df_anonimizado)
+
+    st.download_button(
+        label="⬇ Baixar CSV anonimizado",
+        data=csv_bytes,
+        file_name=nome_saida,
+        mime="text/csv",
+        disabled=not dataset_modificado,
+        help=(
+            "Exporta o dataset com todas as transformações aplicadas."
+            if dataset_modificado
+            else "Aplique ao menos uma transformação antes de exportar."
+        ),
+    )
+
+    if not dataset_modificado:
+        st.caption("Nenhuma transformação foi aplicada ainda.")
+    else:
+        st.caption(
+            f"O dataset transformado possui {len(anonymizer.df_anonimizado)} linhas "
+            f"e {len(anonymizer.df_anonimizado.columns)} colunas."
+        )

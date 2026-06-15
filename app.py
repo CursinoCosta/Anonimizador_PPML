@@ -3,6 +3,7 @@ import streamlit as st
 from ui.views import (
     renderizar_controles_avaliacao,
     secao_avaliacao,
+    secao_exportacao,
     secao_seleciona_tipos,
     secao_transformacao,
 )
@@ -72,6 +73,13 @@ if arquivo_carregado:
             thresholds,
             st.session_state.get("last_auto_k_adjustment"),
             baseline_metrics=st.session_state.get("baseline_metrics"),
+        )
+
+        st.divider()
+        secao_exportacao(
+            st.session_state.anonymizer,
+            st.session_state.profiler,
+            nome_arquivo_original=getattr(arquivo_carregado, "name", "dataset"),
         )
 else:
     st.info("Aguardando upload do arquivo CSV para iniciar o processo.")
