@@ -81,7 +81,7 @@ Anonimizador_PPML/
 
 * [X] Implementar botão de download (`st.download_button`) para exportar o CSV final transformado.
 * [X] Gerar dinamicamente um bloco de texto/markdown sumarizando os parâmetros aplicados (ex: "$k=5$, $l=3$, $t=0.2$ em $X$ registros").
-* [ ] Mostrar um breve relatório de conformidade apontando que as restrições aos identificadores diretos e quase-identificadores foram mitigadas.
+* [X] Mostrar um breve relatório de conformidade apontando que as restrições aos identificadores diretos e quase-identificadores foram mitigadas.
 
 ## 🚀 Como Executar Localmente
 

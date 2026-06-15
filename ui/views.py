@@ -563,6 +563,31 @@ def secao_exportacao(anonymizer, profiler, evaluation_result=None, thresholds=No
                 hide_index=True,
             )
 
+        st.subheader("Relatório de Conformidade")
+        
+        k_esperado = thresholds['k_alvo']
+        l_esperado = thresholds['l_alvo']
+        t_esperado = thresholds['t_limite']
+        
+        k_real = metrics.get('k_anonymity')
+        l_real = metrics.get('l_diversity')
+        t_real = metrics.get('t_closeness')
+        
+        k_ok = k_real is not None and k_real >= k_esperado
+        l_ok = l_real is not None and l_real >= l_esperado
+        t_ok = t_real is not None and t_real <= t_esperado
+        
+        df_conformidade = pd.DataFrame({
+            "Parâmetro": ["k-anonimato", "l-diversidade", "t-closeness"],
+            "Esperado": [f"≥ {k_esperado}", f"≥ {l_esperado}", f"≤ {t_esperado:.2f}"],
+            "Real": [_fmt(k_real), _fmt(l_real), _fmt(t_real)],
+            "Status": ["✔ Atende" if k_ok else "✘ Não atende",
+                    "✔ Atende" if l_ok else "✘ Não atende",
+                    "✔ Atende" if t_ok else "✘ Não atende"]
+        })
+        
+        st.dataframe(df_conformidade, use_container_width=True, hide_index=True)
+
     st.header("5. Exportar Dataset Anonimizado")
 
     nome_base = nome_arquivo_original.replace(".csv", "")
