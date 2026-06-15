@@ -5,19 +5,24 @@ class Anonymizer:
     def __init__(self, profiler):
         self.profiler = profiler
         self.df_anonimizado = profiler.df.copy()
+        self.historico = []
 
     # --- SUPRESSÃO ---
     
     def suprimir_colunas(self, colunas_para_suprimir):
         """Remove colunas inteiras do dataset."""
         if colunas_para_suprimir:
+            linhas = len(self.df_anonimizado)
             self.df_anonimizado = self.df_anonimizado.drop(columns=colunas_para_suprimir, errors='ignore')
+            self.historico.append({"Operação": "Supressão de Coluna", "Coluna(s)": ", ".join(colunas_para_suprimir), "Detalhes": "Remoção completa", "Linhas Afetadas": linhas})
         return self.df_anonimizado
 
     def suprimir_celulas_manualmente(self, coluna, indices):
         """Substitui o valor de células específicas por '***' com base no índice da linha."""
         if coluna in self.df_anonimizado.columns and indices:
+            linhas_afetadas = len(indices)
             self.df_anonimizado.loc[indices, coluna] = "***"
+            self.historico.append({"Operação": "Supressão Manual", "Coluna(s)": coluna, "Detalhes": f"{len(indices)} índices selecionados", "Linhas Afetadas": linhas_afetadas})
         return self.df_anonimizado
 
     def suprimir_celulas_por_regra(self, coluna, palavras_proibidas):
@@ -27,7 +32,10 @@ class Anonymizer:
             padrao = '|'.join([pd.Series(p.strip()).str.escape() for p in palavras_proibidas if p.strip()])
             if padrao:
                 mascara = self.df_anonimizado[coluna].astype(str).str.contains(padrao, case=False, na=False)
+                linhas_afetadas = mascara.sum()
                 self.df_anonimizado.loc[mascara, coluna] = "***"
+                if linhas_afetadas > 0:
+                    self.historico.append({"Operação": "Supressão por Regra", "Coluna(s)": coluna, "Detalhes": f"Palavras: {', '.join(palavras_proibidas)}", "Linhas Afetadas": int(linhas_afetadas)})
         return self.df_anonimizado
 
     # --- GENERALIZAÇÃO ---
@@ -55,7 +63,10 @@ class Anonymizer:
                 # Ex: 00000000 -> **000000 (oculta os N primeiros)
                 return "*" * num_chars + val_str[num_chars:]
                 
+        na_mask = self.df_anonimizado[coluna].isna() | (self.df_anonimizado[coluna].astype(str) == 'nan')
+        linhas_afetadas = (~na_mask).sum()
         self.df_anonimizado[coluna] = self.df_anonimizado[coluna].apply(aplicar_mascara)
+        self.historico.append({"Operação": "Generalização por Máscara", "Coluna(s)": coluna, "Detalhes": f"Ocultar {num_chars} chars ({direcao})", "Linhas Afetadas": int(linhas_afetadas)})
         return self.df_anonimizado
 
     def generalizar_por_hierarquia(self, coluna, dicionario_mapeamento):
@@ -65,7 +76,10 @@ class Anonymizer:
         """
         if coluna in self.df_anonimizado.columns and dicionario_mapeamento:
             # O fillna garante que, se um valor não estiver no dicionário, ele mantenha o original
+            afetadas = self.df_anonimizado[coluna].isin(dicionario_mapeamento.keys()).sum()
             self.df_anonimizado[coluna] = self.df_anonimizado[coluna].map(dicionario_mapeamento).fillna(self.df_anonimizado[coluna])
+            if afetadas > 0:
+                self.historico.append({"Operação": "Generalização por Hierarquia", "Coluna(s)": coluna, "Detalhes": f"{len(dicionario_mapeamento)} regras aplicadas", "Linhas Afetadas": int(afetadas)})
         return self.df_anonimizado
     
     def generalizar_por_faixas(self, coluna, tamanho_faixa):
@@ -97,6 +111,9 @@ class Anonymizer:
             
             # Converte o resultado final de volta para string
             self.df_anonimizado[coluna] = self.df_anonimizado[coluna].astype(str)
+            
+            afetadas = (~pd.isna(self.df_anonimizado[coluna])).sum()
+            self.historico.append({"Operação": "Generalização por Faixas", "Coluna(s)": coluna, "Detalhes": f"Tamanho da faixa: {tamanho_faixa}", "Linhas Afetadas": int(afetadas)})
 
         return self.df_anonimizado
     
@@ -124,6 +141,12 @@ class Anonymizer:
             # Arredonda se o usuário tiver definido o número de casas decimais
             if casas_decimais is not None:
                 self.df_anonimizado[coluna] = self.df_anonimizado[coluna].round(casas_decimais)
+                
+            afetadas = self.df_anonimizado[coluna].notna().sum()
+            detalhes = f"Normal(μ={media}, σ={desvio_padrao})" if distribuicao == "Normal" else f"Uniforme({limite_inf}, {limite_sup})"
+            if casas_decimais is not None:
+                detalhes += f" arred. {casas_decimais} casas"
+            self.historico.append({"Operação": "Adição de Ruído", "Coluna(s)": coluna, "Detalhes": detalhes, "Linhas Afetadas": int(afetadas)})
             
         return self.df_anonimizado
 
@@ -142,5 +165,9 @@ class Anonymizer:
         else:
             # Embaralha a coluna inteira (partição única)
             self.df_anonimizado[coluna_alvo] = np.random.permutation(self.df_anonimizado[coluna_alvo].values)
+
+        afetadas = self.df_anonimizado[coluna_alvo].notna().sum()
+        detalhes = f"Agrupado por: {', '.join(colunas_particao)}" if colunas_particao else "Embaralhamento global"
+        self.historico.append({"Operação": "Permutação", "Coluna(s)": coluna_alvo, "Detalhes": detalhes, "Linhas Afetadas": int(afetadas)})
 
         return self.df_anonimizado

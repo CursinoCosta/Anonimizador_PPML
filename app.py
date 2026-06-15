@@ -79,6 +79,8 @@ if arquivo_carregado:
         secao_exportacao(
             st.session_state.anonymizer,
             st.session_state.profiler,
+            st.session_state.get("evaluation_result"),
+            thresholds,
             nome_arquivo_original=getattr(arquivo_carregado, "name", "dataset"),
         )
 else:

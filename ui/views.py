@@ -486,6 +486,8 @@ def _renderizar_visualizacao(profiler, anonymizer):
 
     if st.button("Desfazer Todas as Transformações"):
         anonymizer.df_anonimizado = profiler.df.copy()
+        if hasattr(anonymizer, 'historico'):
+            anonymizer.historico = []
         _marcar_avaliacao_desatualizada()
         st.rerun()
 
@@ -509,10 +511,59 @@ def _marcar_avaliacao_desatualizada():
     st.session_state["last_auto_k_adjustment"] = None
 
 
-def secao_exportacao(anonymizer, profiler, nome_arquivo_original="dataset"):
-    st.header("5. Exportar Dataset Anonimizado")
+def secao_exportacao(anonymizer, profiler, evaluation_result=None, thresholds=None, nome_arquivo_original="dataset"):
 
     dataset_modificado = not anonymizer.df_anonimizado.equals(profiler.df)
+
+    nome_base = nome_arquivo_original.replace(".csv", "")
+    nome_saida = f"{nome_base}_anonimizado.csv"
+
+    csv_bytes = exportar_csv(anonymizer.df_anonimizado)
+
+    if dataset_modificado and evaluation_result and thresholds:
+        st.subheader("Resumo da Anonimização")
+        
+        metrics = evaluation_result.get("metrics", {})
+        detalhes = evaluation_result.get("details", {})
+        n_linhas = len(anonymizer.df_anonimizado)
+        n_colunas = len(anonymizer.df_anonimizado.columns)
+
+        cols_di = profiler.obter_colunas_por_tipo("DI")
+        cols_qi = detalhes.get("qi_columns", profiler.obter_colunas_por_tipo("QI"))
+        cols_sa = detalhes.get("sa_columns", profiler.obter_colunas_por_tipo("SA"))
+
+        def _fmt(v):
+            if v is None:
+                return "N/A"
+            return f"{v:.2f}" if isinstance(v, float) else str(v)
+
+        linhas_resumo = [
+            f"**Parâmetros configurados:** k = {thresholds['k_alvo']}, "
+            f"l = {thresholds['l_alvo']}, t = {thresholds['t_limite']:.2f}",
+            f"**Resultado atingido:** "
+            f"k-anonimato = {_fmt(metrics.get('k_anonymity'))} | "
+            f"l-diversidade = {_fmt(metrics.get('l_diversity'))} | "
+            f"t-closeness = {_fmt(metrics.get('t_closeness'))}",
+            f"**Utilidade estimada:** {metrics.get('utility_score', 0) * 100:.0f}%",
+            f"**Risco de reidentificação:** {metrics.get('reidentification_risk', 0) * 100:.0f}%",
+            f"**Identificadores suprimidos (DI):** {', '.join(cols_di) or 'nenhum'}",
+            f"**Quase-identificadores (QI):** {', '.join(cols_qi) or 'nenhum'}",
+            f"**Atributos sensíveis (SA):** {', '.join(cols_sa) or 'nenhum'}",
+            f"**Dataset final:** {n_linhas} registros × {n_colunas} colunas",
+        ]
+
+        st.markdown("\n\n".join(f"- {linha}" for linha in linhas_resumo))
+
+        historico = getattr(anonymizer, "historico", None)
+        if historico:
+            st.markdown("**Transformações aplicadas:**")
+            st.dataframe(
+                pd.DataFrame(historico),
+                use_container_width=True,
+                hide_index=True,
+            )
+
+    st.header("5. Exportar Dataset Anonimizado")
 
     nome_base = nome_arquivo_original.replace(".csv", "")
     nome_saida = f"{nome_base}_anonimizado.csv"
