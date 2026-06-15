@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from ui.charts import criar_grafico_tradeoff
-from utils.arquivos import exportar_csv
+from utils.arquivos import exportar_csv, gerar_relatorio_pdf
 
 
 def secao_seleciona_tipos(profiler):
@@ -593,7 +593,24 @@ def secao_exportacao(anonymizer, profiler, evaluation_result=None, thresholds=No
         
         st.dataframe(df_conformidade, use_container_width=True, hide_index=True)
 
-    st.header("5. Exportar Dataset Anonimizado")
+        # --- Seção 5: Exportar relatório ---
+        st.header("5. Exportar Relatório de Anonimização")
+
+        pdf_bytes = gerar_relatorio_pdf(
+            linhas_resumo=linhas_resumo,
+            historico=getattr(anonymizer, "historico", []),
+            df_conformidade=df_conformidade,
+        )
+        nome_relatorio = nome_arquivo_original.replace(".csv", "") + "_relatorio.pdf"
+
+        st.download_button(
+            label="⬇ Baixar Relatório PDF",
+            data=pdf_bytes,
+            file_name=nome_relatorio,
+            mime="application/pdf",
+        )
+
+    st.header("6. Exportar Dataset Anonimizado")
 
     nome_base = nome_arquivo_original.replace(".csv", "")
     nome_saida = f"{nome_base}_anonimizado.csv"
