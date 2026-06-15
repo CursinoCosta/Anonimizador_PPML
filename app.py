@@ -28,7 +28,7 @@ if arquivo_carregado:
         sincronizar_estado_dataset(st.session_state, df, upload_id)
         thresholds = inicializar_thresholds_avaliacao(st.session_state)
 
-        classificacoes = secao_seleciona_tipos(st.session_state.profiler.df)
+        classificacoes = secao_seleciona_tipos(st.session_state.profiler)
         st.session_state.profiler.atualizar_classificacao(classificacoes)
 
         st.divider()

@@ -3,7 +3,8 @@ import streamlit as st
 from ui.charts import criar_grafico_tradeoff
 
 
-def secao_seleciona_tipos(df):
+def secao_seleciona_tipos(profiler):
+    df = profiler.df
     st.header("1. Data Profiling e Classificacao")
     st.subheader("Amostra dos Dados")
     st.dataframe(df.head(5), use_container_width=True)
@@ -21,14 +22,19 @@ def secao_seleciona_tipos(df):
     )
 
     classificacoes = {}
+    opcoes_tipos = ["NSA", "DI", "QI", "SA"]
     colunas_ui = st.columns(2)
     for indice, coluna in enumerate(df.columns):
         with colunas_ui[indice % 2]:
+            chave = f"classificacao_{coluna}"
+            valor_atual = profiler.tipos_colunas.get(coluna, "NSA")
+            if st.session_state.get(chave) not in opcoes_tipos:
+                st.session_state[chave] = valor_atual
             classificacoes[coluna] = st.selectbox(
                 f"Tipo da coluna `{coluna}`",
-                options=["NSA", "DI", "QI", "SA"],
-                index=0,
-                key=f"classificacao_{coluna}",
+                options=opcoes_tipos,
+                index=opcoes_tipos.index(st.session_state[chave]),
+                key=chave,
             )
 
     return classificacoes

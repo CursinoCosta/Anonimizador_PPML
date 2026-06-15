@@ -121,7 +121,9 @@ class WorkflowAvaliacaoTest(unittest.TestCase):
     def test_ajustar_para_k_sem_qi_retorna_warning(self):
         session_state = {}
         sincronizar_estado_dataset(session_state, self.df, "arquivo-1")
-        session_state["profiler"].atualizar_classificacao({"doenca": "SA"})
+        session_state["profiler"].atualizar_classificacao(
+            {"idade": "NSA", "cidade": "NSA", "doenca": "SA"}
+        )
 
         resumo = ajustar_para_k_anonimato(session_state, 2)
 

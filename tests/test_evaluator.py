@@ -8,6 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.evaluator import Evaluator
+from core.profiler import DataProfiler
 
 
 class FakeProfiler:
@@ -23,6 +24,25 @@ class FakeProfiler:
 
 
 class EvaluatorTest(unittest.TestCase):
+    def test_profiler_inicializa_classificacao_automatica(self):
+        df = pd.DataFrame(
+            {
+                "Nome": ["Ana"],
+                "Idade": [20],
+                "Genero": ["Feminino"],
+                "CEP": ["30110-000"],
+                "Diagnostico": ["Gripe"],
+            }
+        )
+
+        profiler = DataProfiler(df)
+
+        self.assertEqual(profiler.tipos_colunas["Nome"], "DI")
+        self.assertEqual(profiler.tipos_colunas["Idade"], "QI")
+        self.assertEqual(profiler.tipos_colunas["Genero"], "QI")
+        self.assertEqual(profiler.tipos_colunas["CEP"], "QI")
+        self.assertEqual(profiler.tipos_colunas["Diagnostico"], "SA")
+
     def test_avalia_dataset_com_qi_e_sa_validos(self):
         df = pd.DataFrame(
             {

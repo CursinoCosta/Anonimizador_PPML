@@ -37,6 +37,10 @@ def sincronizar_estado_dataset(session_state, df, upload_id):
     dataset_trocou = session_state.get("dataset_upload_id") != upload_id
 
     if dataset_trocou or "profiler" not in session_state or "anonymizer" not in session_state:
+        if dataset_trocou:
+            for chave in list(session_state.keys()):
+                if chave.startswith("classificacao_"):
+                    del session_state[chave]
         session_state["dataset_upload_id"] = upload_id
         session_state["profiler"] = DataProfiler(df)
         session_state["anonymizer"] = Anonymizer(session_state["profiler"])
