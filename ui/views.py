@@ -5,19 +5,19 @@ from ui.charts import criar_grafico_tradeoff
 
 def secao_seleciona_tipos(profiler):
     df = profiler.df
-    st.header("1. Data Profiling e Classificacao")
+    st.header("1. Data Profiling e Classificação")
     st.subheader("Amostra dos Dados")
     st.dataframe(df.head(5), use_container_width=True)
 
-    st.subheader("Classificacao de Atributos da Base")
+    st.subheader("Classificação de Atributos da Base")
     st.markdown(
         """
         Classifique cada coluna de acordo com a taxonomia de privacidade.
 
         - `DI`: identificador direto, como nome, email ou CPF.
         - `QI`: quase-identificador, como idade, cidade ou CEP.
-        - `SA`: atributo sensivel, como doenca, renda ou religiao.
-        - `NSA`: atributo nao sensivel.
+        - `SA`: atributo sensível, como doença, renda ou religião.
+        - `NSA`: atributo não sensível.
         """
     )
 
@@ -41,11 +41,11 @@ def secao_seleciona_tipos(profiler):
 
 
 def secao_transformacao(profiler, anonymizer):
-    st.header("2. Transformacoes")
-    st.markdown("Configure as distorcoes para proteger os dados.")
+    st.header("2. Transformações")
+    st.markdown("Configure as distorções para proteger os dados.")
 
     abas = st.tabs(
-        ["Supressao", "Generalizacao", "Perturbacao", "Visualizacao"]
+        ["Supressão", "Generalização", "Perturbação", "Visualização"]
     )
 
     with abas[0]:
@@ -62,12 +62,12 @@ def secao_transformacao(profiler, anonymizer):
 
 
 def renderizar_controles_avaliacao(session_state, thresholds):
-    st.header("3. Pipeline de Modelos Sintaticos de Privacidade")
+    st.header("3. Pipeline de Modelos Sintáticos de Privacidade")
 
     col1, col2, col3 = st.columns(3)
     with col1:
         k_alvo = st.slider(
-            "Parametro k",
+            "Parâmetro k",
             min_value=2,
             max_value=10,
             value=int(thresholds["k_alvo"]),
@@ -75,7 +75,7 @@ def renderizar_controles_avaliacao(session_state, thresholds):
         )
     with col2:
         l_alvo = st.number_input(
-            "Parametro l",
+            "Parâmetro l",
             min_value=1,
             max_value=10,
             value=int(thresholds["l_alvo"]),
@@ -84,7 +84,7 @@ def renderizar_controles_avaliacao(session_state, thresholds):
         )
     with col3:
         t_limite = st.number_input(
-            "Parametro t",
+            "Parâmetro t",
             min_value=0.0,
             max_value=1.0,
             value=float(thresholds["t_limite"]),
@@ -107,13 +107,13 @@ def renderizar_controles_avaliacao(session_state, thresholds):
     )
 
     if not qis_disponiveis:
-        st.caption("Defina ao menos uma coluna como QI para habilitar o ajuste automatico.")
+        st.caption("Defina ao menos uma coluna como QI para habilitar o ajuste automático.")
 
     return session_state["evaluation_thresholds"].copy(), executar_ajuste
 
 
-def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
-    st.header("4. Avaliacao")
+def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None, baseline_metrics=None):
+    st.header("4. Avaliação")
 
     metrics = evaluation_result["metrics"]
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -128,6 +128,17 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
         f"Status atual: `{status}`. "
         f"Thresholds ativos: k={thresholds['k_alvo']}, "
         f"l={thresholds['l_alvo']}, t={thresholds['t_limite']:.2f}."
+    )
+    _estilos = {
+        "seguro":               ("rgba(34, 197, 94, 0.2)",   "#ffffff"),
+        "parcialmente_seguro":  ("rgba(245, 158, 11, 0.2)",  "#ffffff"),
+        "nao_seguro":           ("rgba(239, 68, 68, 0.2)",   "#ffffff"),
+    }.get(status, ("rgba(100, 116, 139, 0.2)", "#ffffff"))
+    _bg, _fg = _estilos
+    st.markdown(
+        f"<style>div[data-testid='stAlert']:last-of-type > div {{"
+        f"background-color: {_bg} !important; color: {_fg} !important;}}</style>",
+        unsafe_allow_html=True,
     )
     if status == "seguro":
         st.success(mensagem_status)
@@ -144,11 +155,11 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
         st.warning(aviso)
 
     if auto_k_result:
-        st.subheader("Ajuste automatico para k")
+        st.subheader("Ajuste automático para k")
         ajuste_msg = (
             f"k inicial: {_formatar_metrica(auto_k_result['k_inicial'])} | "
             f"k final: {_formatar_metrica(auto_k_result['k_final'])} | "
-            f"atingiu alvo: {'sim' if auto_k_result['atingiu_alvo'] else 'nao'}"
+            f"atingiu o alvo: {'sim' if auto_k_result['atingiu_alvo'] else 'não'}"
         )
         if auto_k_result["atingiu_alvo"]:
             st.success(ajuste_msg)
@@ -173,7 +184,7 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
 
     st.subheader("Dashboard de Trade-off")
 
-    fig = criar_grafico_tradeoff(metrics)
+    fig = criar_grafico_tradeoff(metrics, baseline_metrics=baseline_metrics, status=status)
 
     st.plotly_chart(
         fig,
@@ -214,12 +225,12 @@ def secao_avaliacao(evaluation_result, thresholds, auto_k_result=None):
 
     else:
         st.info(
-            "Nao ha classes de equivalencia para avaliar."
+            "Não há classes de equivalência para avaliar."
         )
 
 
 def _renderizar_supressao(profiler, anonymizer):
-    st.subheader("Supressao de Identificadores")
+    st.subheader("Supressão de Identificadores")
 
     cols_di = profiler.obter_colunas_por_tipo("DI")
     colunas_sugeridas = [
@@ -232,40 +243,40 @@ def _renderizar_supressao(profiler, anonymizer):
         default=colunas_sugeridas,
         key="supressao_colunas",
     )
-    if st.button("Aplicar Supressao de Colunas"):
+    if st.button("Aplicar Supressão de Colunas"):
         anonymizer.suprimir_colunas(colunas_para_suprimir)
         _marcar_avaliacao_desatualizada()
-        st.success("Supressao aplicada.")
+        st.success("Supressão aplicada.")
 
     st.divider()
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("**Supressao Manual por Linha**")
+        st.markdown("**Supressão Manual por Linha**")
         coluna_alvo = st.selectbox(
             "Coluna alvo",
             options=anonymizer.df_anonimizado.columns.tolist(),
             key="supressao_manual_coluna",
         )
         indices_selecionados = st.multiselect(
-            "Indices das linhas",
+            "Índices das linhas",
             options=anonymizer.df_anonimizado.index.tolist(),
             key="supressao_manual_indices",
         )
-        if st.button("Suprimir Celulas Selecionadas"):
+        if st.button("Suprimir Células Selecionadas"):
             anonymizer.suprimir_celulas_manualmente(coluna_alvo, indices_selecionados)
             _marcar_avaliacao_desatualizada()
-            st.success("Celulas suprimidas.")
+            st.success("Células suprimidas.")
 
     with col2:
-        st.markdown("**Supressao por Regras (Palavras)**")
+        st.markdown("**Supressão por Regras (Palavras)**")
         coluna_regra = st.selectbox(
             "Coluna para aplicar regra",
             options=anonymizer.df_anonimizado.columns.tolist(),
             key="supressao_regra_coluna",
         )
         palavras_input = st.text_input(
-            "Palavras proibidas separadas por virgula",
+            "Palavras proibidas separadas por vírgula",
             key="supressao_regra_palavras",
         )
         if st.button("Suprimir Palavras"):
@@ -280,7 +291,7 @@ def _renderizar_supressao(profiler, anonymizer):
 
 
 def _renderizar_generalizacao(profiler, anonymizer):
-    st.subheader("Generalizacao")
+    st.subheader("Generalização")
 
     cols_qi = [
         coluna
@@ -288,7 +299,7 @@ def _renderizar_generalizacao(profiler, anonymizer):
         if coluna in anonymizer.df_anonimizado.columns
     ]
     if not cols_qi:
-        st.info("Nao ha colunas QI disponiveis para generalizacao.")
+        st.info("Não há colunas QI disponíveis para generalização.")
         return
 
     coluna_gen = st.selectbox(
@@ -297,24 +308,24 @@ def _renderizar_generalizacao(profiler, anonymizer):
         key="generalizacao_coluna",
     )
     tipo_gen = st.radio(
-        "Metodo de generalizacao",
+        "Método de generalização",
         [
-            "Censura de Caracteres (Mascara)",
+            "Censura de Caracteres (Máscara)",
             "Hierarquia de Classes (Texto Livre)",
-            "Agrupamento em Faixas (Numerico)",
+            "Agrupamento em Faixas (Numérico)",
         ],
         horizontal=True,
     )
 
-    if tipo_gen == "Censura de Caracteres (Mascara)":
+    if tipo_gen == "Censura de Caracteres (Máscara)":
         num_chars = st.number_input(
-            "Numero de caracteres a ocultar",
+            "Número de caracteres a ocultar",
             min_value=1,
             value=3,
             step=1,
         )
         direcao = st.radio(
-            "Direcao da omissao",
+            "Direção da omissão",
             [
                 "Da direita para a esquerda",
                 "Da esquerda para a direita",
@@ -326,10 +337,10 @@ def _renderizar_generalizacao(profiler, anonymizer):
             if "direita" in direcao.lower()
             else "esquerda_para_direita"
         )
-        if st.button("Aplicar Mascara"):
+        if st.button("Aplicar Máscara"):
             anonymizer.generalizar_por_mascara(coluna_gen, int(num_chars), direcao_param)
             _marcar_avaliacao_desatualizada()
-            st.success("Mascara aplicada.")
+            st.success("Máscara aplicada.")
 
     elif tipo_gen == "Hierarquia de Classes (Texto Livre)":
         valores_unicos = (
@@ -360,7 +371,7 @@ def _renderizar_generalizacao(profiler, anonymizer):
             anonymizer.df_anonimizado[coluna_gen], errors="coerce"
         )
         if coluna_numerica.dropna().empty:
-            st.info("A coluna selecionada nao possui valores numericos validos.")
+            st.info("A coluna selecionada não possui valores numéricos válidos.")
             return
 
         tamanho_faixa = st.number_input(
@@ -377,19 +388,19 @@ def _renderizar_generalizacao(profiler, anonymizer):
 
 
 def _renderizar_perturbacao(profiler, anonymizer):
-    st.subheader("Perturbacao")
+    st.subheader("Perturbação")
 
     colunas_numericas = anonymizer.df_anonimizado.select_dtypes(
         include=["number"]
     ).columns.tolist()
     if colunas_numericas:
         col_ruido = st.selectbox(
-            "Coluna numerica para adicionar ruido",
+            "Coluna numérica para adicionar ruído",
             options=colunas_numericas,
             key="ruido_coluna",
         )
         distribuicao = st.radio(
-            "Distribuicao do ruido",
+            "Distribuição do ruído",
             ["Normal", "Uniforme"],
             horizontal=True,
             key="ruido_distribuicao",
@@ -405,14 +416,14 @@ def _renderizar_perturbacao(profiler, anonymizer):
         if distribuicao == "Normal":
             col_a, col_b = st.columns(2)
             with col_a:
-                media = st.number_input("Media (mu)", value=0.0)
+                media = st.number_input("Média (mu)", value=0.0)
             with col_b:
                 desvio = st.number_input(
-                    "Desvio padrao (sigma)",
+                    "Desvio padrão (sigma)",
                     min_value=0.0001,
                     value=1.0,
                 )
-            if st.button("Aplicar Ruido Normal"):
+            if st.button("Aplicar Ruído Normal"):
                 anonymizer.adicionar_ruido(
                     col_ruido,
                     distribuicao="Normal",
@@ -421,14 +432,14 @@ def _renderizar_perturbacao(profiler, anonymizer):
                     casas_decimais=int(casas_decimais),
                 )
                 _marcar_avaliacao_desatualizada()
-                st.success("Ruido normal aplicado.")
+                st.success("Ruído normal aplicado.")
         else:
             col_a, col_b = st.columns(2)
             with col_a:
                 limite_inf = st.number_input("Limite inferior", value=-1.0)
             with col_b:
                 limite_sup = st.number_input("Limite superior", value=1.0)
-            if st.button("Aplicar Ruido Uniforme"):
+            if st.button("Aplicar Ruído Uniforme"):
                 anonymizer.adicionar_ruido(
                     col_ruido,
                     distribuicao="Uniforme",
@@ -437,19 +448,19 @@ def _renderizar_perturbacao(profiler, anonymizer):
                     casas_decimais=int(casas_decimais),
                 )
                 _marcar_avaliacao_desatualizada()
-                st.success("Ruido uniforme aplicado.")
+                st.success("Ruído uniforme aplicado.")
     else:
-        st.info("O dataset nao possui colunas numericas continuas para aplicar ruido.")
+        st.info("O dataset não possui colunas numéricas contínuas para aplicar ruído.")
 
     st.divider()
-    st.subheader("Permutacao de Dados")
+    st.subheader("Permutação de Dados")
     colunas_sa = [
         coluna
         for coluna in profiler.obter_colunas_por_tipo("SA")
         if coluna in anonymizer.df_anonimizado.columns
     ]
     col_sa = st.selectbox(
-        "Atributo sensivel (SA) para embaralhar",
+        "Atributo sensível (SA) para embaralhar",
         options=colunas_sa or anonymizer.df_anonimizado.columns.tolist(),
         key="perm_coluna_sa",
     )
@@ -462,17 +473,17 @@ def _renderizar_perturbacao(profiler, anonymizer):
         ],
         key="perm_colunas_particao",
     )
-    if st.button("Aplicar Permutacao"):
+    if st.button("Aplicar Permutação"):
         anonymizer.permutar_dados(col_sa, cols_particao)
         _marcar_avaliacao_desatualizada()
-        st.success("Permutacao aplicada.")
+        st.success("Permutação aplicada.")
 
 
 def _renderizar_visualizacao(profiler, anonymizer):
     st.subheader("Dataset Transformado")
     st.dataframe(anonymizer.df_anonimizado.head(15), use_container_width=True)
 
-    if st.button("Desfazer Todas as Transformacoes"):
+    if st.button("Desfazer Todas as Transformações"):
         anonymizer.df_anonimizado = profiler.df.copy()
         _marcar_avaliacao_desatualizada()
         st.rerun()

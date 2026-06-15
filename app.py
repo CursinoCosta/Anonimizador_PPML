@@ -19,7 +19,7 @@ from utils.avaliacao import (
 st.set_page_config(page_title="Avaliador PPML", layout="wide")
 st.title("Avaliador de Trade-off: Privacidade vs Utilidade")
 
-arquivo_carregado = st.file_uploader("Faca upload da base (CSV)", type=["csv"])
+arquivo_carregado = st.file_uploader("Faça upload da base (CSV)", type=["csv"])
 
 if arquivo_carregado:
     df = carregar_dataframe(arquivo_carregado)
@@ -32,7 +32,7 @@ if arquivo_carregado:
         st.session_state.profiler.atualizar_classificacao(classificacoes)
 
         st.divider()
-        st.write("Resumo atual das classificacoes:")
+        st.write("Resumo atual das classificações:")
         col1, col2, col3, col4 = st.columns(4)
         col1.metric(
             "Identificadores (DI)",
@@ -43,11 +43,11 @@ if arquivo_carregado:
             len(st.session_state.profiler.obter_colunas_por_tipo("QI")),
         )
         col3.metric(
-            "Atributos Sensiveis (SA)",
+            "Atributos Sensíveis (SA)",
             len(st.session_state.profiler.obter_colunas_por_tipo("SA")),
         )
         col4.metric(
-            "Nao Sensiveis (NSA)",
+            "Não Sensíveis (NSA)",
             len(st.session_state.profiler.obter_colunas_por_tipo("NSA")),
         )
 
@@ -71,6 +71,7 @@ if arquivo_carregado:
             st.session_state["evaluation_result"],
             thresholds,
             st.session_state.get("last_auto_k_adjustment"),
+            baseline_metrics=st.session_state.get("baseline_metrics"),
         )
 else:
     st.info("Aguardando upload do arquivo CSV para iniciar o processo.")

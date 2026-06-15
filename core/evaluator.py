@@ -104,7 +104,7 @@ class Evaluator:
         qi_columns = self._obter_qis()
         if not qi_columns:
             self._adicionar_warning(
-                "Nao foi possivel calcular k-anonimato porque nao ha colunas QI."
+                "Não foi possível calcular k-anonimato porque não há colunas QI."
             )
             return {
                 "value": None,
@@ -136,12 +136,12 @@ class Evaluator:
         sa_columns = self._obter_sas()
         if not qi_columns:
             self._adicionar_warning(
-                "Nao foi possivel calcular l-diversidade porque nao ha colunas QI."
+                "Não foi possível calcular l-diversidade porque não há colunas QI."
             )
             return self._resultado_l_vazio()
         if not sa_columns:
             self._adicionar_warning(
-                "Nao foi possivel calcular l-diversidade porque nao ha colunas SA."
+                "Não foi possível calcular l-diversidade porque não há colunas SA."
             )
             return self._resultado_l_vazio()
 
@@ -181,12 +181,12 @@ class Evaluator:
         sa_columns = self._obter_sas()
         if not qi_columns:
             self._adicionar_warning(
-                "Nao foi possivel calcular t-closeness porque nao ha colunas QI."
+                "Não foi possível calcular t-closeness porque não há colunas QI."
             )
             return self._resultado_t_vazio()
         if not sa_columns:
             self._adicionar_warning(
-                "Nao foi possivel calcular t-closeness porque nao ha colunas SA."
+                "Não foi possível calcular t-closeness porque não há colunas SA."
             )
             return self._resultado_t_vazio()
 
@@ -244,7 +244,7 @@ class Evaluator:
 
         total_celulas_original = len(self.df_original) * len(colunas_originais)
         if total_celulas_original == 0:
-            self._adicionar_warning("Nao foi possivel calcular utilidade em dataset vazio.")
+            self._adicionar_warning("Não foi possível calcular utilidade em dataset vazio.")
             return {
                 "value": None,
                 "preserved_ratio": None,
@@ -380,7 +380,7 @@ class Evaluator:
 
         return (
             f"O dataset foi avaliado usando {qis} como QI e {sas} como SA. "
-            f"Apos a anonimizacao, atingiu k={k}, l={l} e t={t}. "
+            f"Após a anonimização, atingiu k={k}, l={l} e t={t}. "
             f"A utilidade estimada foi de {utilidade}, com risco de "
             f"reidentificacao {nivel_risco} ({risco}). Status: {status}."
         )

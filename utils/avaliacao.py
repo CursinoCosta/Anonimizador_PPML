@@ -48,6 +48,7 @@ def sincronizar_estado_dataset(session_state, df, upload_id):
         session_state["last_auto_k_adjustment"] = None
         session_state["last_evaluated_thresholds"] = None
         session_state["evaluation_thresholds"] = DEFAULT_EVALUATION_THRESHOLDS.copy()
+        session_state["baseline_metrics"] = None
 
     return dataset_trocou
 
@@ -60,6 +61,10 @@ def atualizar_resultado_avaliacao(session_state, thresholds=None):
     resultado = evaluator.avaliar(**thresholds)
     session_state["evaluation_thresholds"] = thresholds.copy()
     session_state["evaluation_result"] = resultado
+
+    if session_state.get("baseline_metrics") is None:
+        session_state["baseline_metrics"] = resultado["metrics"].copy()
+
     return resultado
 
 
@@ -79,7 +84,7 @@ def ajustar_para_k_anonimato(session_state, k_alvo):
             "atingiu_alvo": False,
             "steps_applied": [],
             "warnings": [
-                "Nao foi possivel ajustar para k-anonimato porque nao ha colunas QI."
+                "Não foi possível ajustar para k-anonimato porque não há colunas QI."
             ],
         }
         session_state["last_auto_k_adjustment"] = resumo
@@ -131,7 +136,7 @@ def ajustar_para_k_anonimato(session_state, k_alvo):
         "atingiu_alvo": False,
         "steps_applied": steps_applied,
         "warnings": [
-            "Nao foi possivel atingir k automaticamente com as generalizacoes disponiveis."
+            "Não foi possível atingir k automaticamente com as generalizações disponíveis."
         ],
     }
     session_state["last_auto_k_adjustment"] = resumo
