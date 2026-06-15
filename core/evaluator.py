@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 import pandas as pd
+from scipy.stats import wasserstein_distance
 
 
 VALOR_NULO = "<NA>"
@@ -180,46 +181,81 @@ class Evaluator:
         qi_columns = self._obter_qis()
         sa_columns = self._obter_sas()
         if not qi_columns:
-            self._adicionar_warning(
-                "Não foi possível calcular t-closeness porque não há colunas QI."
-            )
+            self._adicionar_warning("Não foi possível calcular t-closeness porque não há colunas QI.")
             return self._resultado_t_vazio()
         if not sa_columns:
-            self._adicionar_warning(
-                "Não foi possível calcular t-closeness porque não há colunas SA."
-            )
+            self._adicionar_warning("Não foi possível calcular t-closeness porque não há colunas SA.")
             return self._resultado_t_vazio()
 
-        df_preparado = self.df_anonimizado.copy()
-        for coluna in sa_columns:
-            df_preparado[coluna] = self._preparar_coluna_sensivel_para_t(coluna)
-
-        df_norm = self._normalizar_dataframe(df_preparado)
+        df_norm = self._normalizar_dataframe(self.df_anonimizado)
         grupos = df_norm.groupby(qi_columns, dropna=False, sort=False)
         distancias = []
         details = []
         pior_caso = None
 
         for coluna_sa in sa_columns:
-            distribuicao_global = self._distribuicao(df_norm[coluna_sa])
-            categorias = distribuicao_global.index.union(df_norm[coluna_sa].unique())
+            # Tenta converter para numérico para verificar se é um dado contínuo
+            serie_original = self.df_anonimizado[coluna_sa]
+            serie_numerica = pd.to_numeric(serie_original, errors="coerce")
+            is_numeric = not serie_numerica.dropna().empty
 
-            for chave, grupo in grupos:
-                distribuicao_grupo = self._distribuicao(grupo[coluna_sa])
-                distancia = self._distancia_variacao_total(
-                    distribuicao_global,
-                    distribuicao_grupo,
-                    categorias,
-                )
-                item = {
-                    "group": self._serializar_chave_grupo(chave),
-                    "sensitive_column": coluna_sa,
-                    "distance": float(distancia),
-                }
-                details.append(item)
-                distancias.append(distancia)
-                if pior_caso is None or distancia > pior_caso["distance"]:
-                    pior_caso = item
+            if is_numeric:
+                # =========================================================
+                # TRATAMENTO PARA DADOS CONTÍNUOS (NORMALIZAÇÃO MIN-MAX)
+                # =========================================================
+                min_val = serie_numerica.min()
+                max_val = serie_numerica.max()
+                
+                # Normaliza para a escala [0, 1]
+                if max_val > min_val:
+                    serie_proc = (serie_numerica - min_val) / (max_val - min_val)
+                else:
+                    serie_proc = serie_numerica.fillna(0)
+                
+                distribuicao_global = serie_proc.dropna().values
+                
+                for chave, grupo_idx in grupos.groups.items():
+                    # Pega apenas os valores numéricos deste grupo específico
+                    distribuicao_grupo = serie_proc.loc[grupo_idx].dropna().values
+                    
+                    if len(distribuicao_grupo) > 0 and len(distribuicao_global) > 0:
+                        # Calcula a Earth Mover's Distance já contida entre 0 e 1
+                        distancia = wasserstein_distance(distribuicao_global, distribuicao_grupo)
+                    else:
+                        distancia = 0.0
+                        
+                    item = {
+                        "group": self._serializar_chave_grupo(chave),
+                        "sensitive_column": coluna_sa,
+                        "distance": float(distancia),
+                    }
+                    details.append(item)
+                    distancias.append(distancia)
+                    if pior_caso is None or distancia > pior_caso["distance"]:
+                        pior_caso = item
+            else:
+                # =========================================================
+                # TRATAMENTO PARA DADOS CATEGÓRICOS/TEXTO (TVD)
+                # =========================================================
+                distribuicao_global = self._distribuicao(df_norm[coluna_sa])
+                categorias = distribuicao_global.index.union(df_norm[coluna_sa].unique())
+
+                for chave, grupo in grupos:
+                    distribuicao_grupo = self._distribuicao(grupo[coluna_sa])
+                    distancia = self._distancia_variacao_total(
+                        distribuicao_global,
+                        distribuicao_grupo,
+                        categorias,
+                    )
+                    item = {
+                        "group": self._serializar_chave_grupo(chave),
+                        "sensitive_column": coluna_sa,
+                        "distance": float(distancia),
+                    }
+                    details.append(item)
+                    distancias.append(distancia)
+                    if pior_caso is None or distancia > pior_caso["distance"]:
+                        pior_caso = item
 
         valor = max(distancias) if distancias else None
         media = float(np.mean(distancias)) if distancias else None

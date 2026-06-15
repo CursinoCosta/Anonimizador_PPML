@@ -24,6 +24,9 @@ arquivo_carregado = st.file_uploader("Faça upload da base (CSV)", type=["csv"])
 
 if arquivo_carregado:
     df = carregar_dataframe(arquivo_carregado)
+    # No app.py, após carregar_dataframe:
+    if len(df) > 5000:
+        st.warning("Bases com mais de 5.000 registros podem causar lentidão no cálculo do t-closeness no Streamlit. Considere usar uma amostra.")
     if df is not None:
         upload_id = identificar_upload(arquivo_carregado)
         sincronizar_estado_dataset(st.session_state, df, upload_id)
