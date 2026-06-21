@@ -88,7 +88,7 @@ Anonimizador_PPML/
 1. Clone o repositório:
 
 ```bash
-   git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
+   git clone https://github.com/CursinoCosta/Anonimizador_PPML.git
 ```
 
 1. Crie e ative um ambiente virtual (opcional, mas recomendado):
